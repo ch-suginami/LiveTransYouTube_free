@@ -1,0 +1,6 @@
+__pycache__
+build
+dist
+配布用
+*.zip
+*.spec
