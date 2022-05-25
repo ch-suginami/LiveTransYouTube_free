@@ -115,7 +115,7 @@ def main():
         try:
             yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-            slp_time = int(f.readline().replace("チャット取得時間間隔=").strip())
+            slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
         except:
             print("key.txtの記述が不正です。ファイルを再確認してください。")
             sys.exit()
