@@ -55,7 +55,7 @@ def get_chat_id(yt_url, yt_api):
     return chat_id
 
 
-def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
+def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, DL_URL):
     # setting parameters
     url = 'https://www.googleapis.com/youtube/v3/liveChat/messages'
     params = {'key': yt_api, 'liveChatId': chat_id,'part': 'id, snippet, authorDetails'}
@@ -73,11 +73,11 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL
         # repeating for checking comments
         try:
             for item in data['items']:
-                event, values = window.read()
-                if event == sg.WIN_CLOSED:
-                    terminate(window)
-                elif event == 'stop':
-                    return -1
+                # event, values = window.read()
+                # if event == sg.WIN_CLOSED:
+                #     terminate(window)
+                # elif event == 'stop':
+                #     return -1
 
                 msg = item['snippet']['displayMessage']
                 usr = item['authorDetails']['displayName']
@@ -98,16 +98,14 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL
                     supChatComment = item['snippet']['superChatDetails']['userComment']
                     print(f'{usr}さんからスパチャが来ました！ナイスパ！！ : {usr} Thanks for superchat!')
                     print(f'{supChatAmount}!')
-                    print(f'  original : {supChatComment}')
-                    print(f'  Japanese : {trans}')
+                    print(f'{trans}')
                     print('')
                     window.Refresh()
                     f.write(f'{c_time}:\n{usr}:\n  金額 : {supChatAmount}\n  元コメント : {supChatComment}\n  翻訳コメント : {trans}\n\n')
                     f.flush()
                 else:
                     print(f'{usr}:')
-                    print(f'  original : {msg}')
-                    print(f'  Japanese : {trans}')
+                    print(f'{trans}')
                     print('')
                     window.Refresh()
                     f.write(f'{c_time}:\n{usr}:\n  original : {msg}\n  Japanese : {trans}\n\n')
@@ -189,13 +187,14 @@ def main():
             f_today = "Live_" + n_time.strftime('%Y-%m-%d_%H%M') + '.txt'
 
             nextPageToken = ''
-            count = 0
-
-            s_point = datetime.datetime.now()
 
             # getting first time
-            nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, count, DL_URL)
+            nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
 
+            print("test")
+            window.Refresh()
+
+            s_point = datetime.datetime.now()
             # infinity loop
             while(chat_id):
                 if event == sg.WIN_CLOSED:
@@ -207,14 +206,13 @@ def main():
                 check_time = datetime.datetime.now() - s_point
                 if check_time > slp_time*1000:
                     try:
-                        nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, count, DL_URL)
+                        nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
                     except:
                         break
                     # reset time counter
                     s_point = datetime.datetime.now()
                 if nextPageToken == -1:
                     break
-                count += 1
 
             if nextPageToken == -1:
                 break
