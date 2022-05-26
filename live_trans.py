@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from operator import ne
+from subprocess import check_output
+from tkinter.messagebox import NO
+import PySimpleGUI as sg
+
 import datetime
 import dateutil.parser
 import json
+import os
 import requests
 import regex
 import sys
@@ -45,12 +51,11 @@ def get_chat_id(yt_url, yt_api):
         chat_id = liveStreamingDetails['activeLiveChatId']
     else:
         chat_id = None
-        print('ライブはオフラインです')
 
     return chat_id
 
 
-def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
+def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
     # setting parameters
     url = 'https://www.googleapis.com/youtube/v3/liveChat/messages'
     params = {'key': yt_api, 'liveChatId': chat_id,'part': 'id, snippet, authorDetails'}
@@ -59,7 +64,7 @@ def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
         params['pageToken'] = pageToken
     else:
         print("パラメータ指定にエラーがあります")
-        sys.exit()
+        window.Refresh()
 
     # requesting chat itself
     data = requests.get(url, params=params).json()
@@ -68,6 +73,12 @@ def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
         # repeating for checking comments
         try:
             for item in data['items']:
+                event, values = window.read()
+                if event == sg.WIN_CLOSED:
+                    terminate(window)
+                elif event == 'stop':
+                    return -1
+
                 msg = item['snippet']['displayMessage']
                 usr = item['authorDetails']['displayName']
                 c_time = dateutil.parser.parse(item['snippet']['publishedAt']) \
@@ -90,6 +101,7 @@ def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
                     print(f'  original : {supChatComment}')
                     print(f'  Japanese : {trans}')
                     print('')
+                    window.Refresh()
                     f.write(f'{c_time}:\n{usr}:\n  金額 : {supChatAmount}\n  元コメント : {supChatComment}\n  翻訳コメント : {trans}\n\n')
                     f.flush()
                 else:
@@ -97,6 +109,7 @@ def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
                     print(f'  original : {msg}')
                     print(f'  Japanese : {trans}')
                     print('')
+                    window.Refresh()
                     f.write(f'{c_time}:\n{usr}:\n  original : {msg}\n  Japanese : {trans}\n\n')
                     f.flush()
 
@@ -109,58 +122,102 @@ def get_chat(chat_id, pageToken, f_today, yt_api, deepl_API_key, cnt, DL_URL):
     # to get next comments
     return data['nextPageToken']
 
+def terminate(window):
+    window.close()
+    sys.exit()
 
 def main():
-    with open('./API/key.txt', 'r') as f:
-        try:
-            yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
-            deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-            slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
-        except:
-            print("key.txtの記述が不正です。ファイルを再確認してください。")
-            sys.exit()
+
+    sg.theme('Dark Blue 3')
+
+    layout = [ [sg.Text('配信URLを入力してください'), sg.InputText('', key='URL'), \
+        sg.Button('コメント取得', key='translate'), sg.Button('中止', key='stop')],
+        [sg.Output(size=(95, 20))]
+    ]
+
+    window = sg.Window('YouTubeライブ翻訳ツール', layout)
 
     while True:
-        print(u'YouTubeLiveアドレスを入力してください。')
-        yt_url = input()
-        # checking right Live address
-        if not regex.match(r'^https://www.youtube.com/watch', yt_url):
-            print('正しいYouTubeアドレスを指定してください。（https://www.youtube.com/watchから始まっていますか？）')
-        else:
-            break
+        event, values = window.read()
 
-    # checking which key of DeepL API use
-    # Try to use paying key
-    params = {'auth_key': deepl_api, 'text': "Live streamings will help us happy!", 'target_lang': 'JA'}
-    check = requests.post('https://api.deepl.com/v2/translate', data=params).json()
+        if event == sg.WIN_CLOSED:
+            terminate(window)
 
-    if check == "<Response [403]>":
-        try:
-            check = requests.post('https://api-free.deepl.com/v2/translate', data=params).json()
-        except:
-            print("DeepL APIキーの値が正しくありません。")
-            sys.exit()
-        DL_URL = 'https://api-free.deepl.com/v2/translate'
-    else:
-        DL_URL = 'https://api.deepl.com/v2/translate'
+        if event == 'translate':
+            path = './API/key.txt'.replace('/', os.sep)
+            with open(path, 'r', encoding='UTF-8') as f:
+                try:
+                    yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
+                    deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+                    slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
+                except:
+                    print("key.txtの記述が不正です。ファイルを再確認してください。")
+                    window.Refresh()
 
-    chat_id = get_chat_id(yt_url, yt_api)
+            yt_url = values['URL']
+            # checking right Live address
+            if not regex.match(r'^https://www.youtube.com/watch', yt_url):
+                print('正しいYouTubeアドレスを指定してください。（https://www.youtube.com/watchから始まっていますか？）')
+                window.Refresh()
+            else:
+                pass
 
-    n_time = datetime.datetime.now()
-    f_today = "Live_" + n_time.strftime('%Y-%m-%d_%H%M') + '.txt'
+            # checking which key of DeepL API use
+            # Try to use paying key
+            params = {'auth_key': deepl_api, 'text': "Live streamings will help us happy!", 'target_lang': 'JA'}
+            check = requests.post('https://api.deepl.com/v2/translate', data=params).json()
 
-    nextPageToken = ''
-    count = 0
+            if check == "<Response [403]>":
+                try:
+                    check = requests.post('https://api-free.deepl.com/v2/translate', data=params).json()
+                except:
+                    print("DeepL APIキーの値が正しくありません。")
+                    window.Refresh()
+                    sys.exit()
+                DL_URL = 'https://api-free.deepl.com/v2/translate'
+            else:
+                DL_URL = 'https://api.deepl.com/v2/translate'
 
-    # infinity loop
-    while(chat_id):
-        try:
-            nextPageToken = get_chat(chat_id, nextPageToken, f_today, yt_api, deepl_api, count, DL_URL)
-            time.sleep(slp_time)
-        except:
-            break
-        count += 1
+            chat_id = get_chat_id(yt_url, yt_api)
 
+            if chat_id is None:
+                print('ライブはオフラインです')
+                window.Refresh()
+                break
+
+            n_time = datetime.datetime.now()
+            f_today = "Live_" + n_time.strftime('%Y-%m-%d_%H%M') + '.txt'
+
+            nextPageToken = ''
+            count = 0
+
+            s_point = datetime.datetime.now()
+
+            # getting first time
+            nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, count, DL_URL)
+
+            # infinity loop
+            while(chat_id):
+                if event == sg.WIN_CLOSED:
+                    terminate(window)
+                elif event == 'stop':
+                    break
+
+                # checking sleeping time
+                check_time = datetime.datetime.now() - s_point
+                if check_time > slp_time*1000:
+                    try:
+                        nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, count, DL_URL)
+                    except:
+                        break
+                    # reset time counter
+                    s_point = datetime.datetime.now()
+                if nextPageToken == -1:
+                    break
+                count += 1
+
+            if nextPageToken == -1:
+                break
 
 if __name__ == '__main__':
     main()
