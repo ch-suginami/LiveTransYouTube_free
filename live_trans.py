@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from distutils.util import check_environ
+from faulthandler import disable
 from operator import ne
 from subprocess import check_output
 from tkinter.messagebox import NO
@@ -20,6 +22,9 @@ import traceback
 
 # API Key Information
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
+deepl_api = "5ebc8721-eb64-797d-d9bd-6e3bf637ceac"
+slp_time = 5
+
 
 # translating with DeepL
 
@@ -73,12 +78,6 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, DL_URL)
         # repeating for checking comments
         try:
             for item in data['items']:
-                # event, values = window.read()
-                # if event == sg.WIN_CLOSED:
-                #     terminate(window)
-                # elif event == 'stop':
-                #     return -1
-
                 msg = item['snippet']['displayMessage']
                 usr = item['authorDetails']['displayName']
                 c_time = dateutil.parser.parse(item['snippet']['publishedAt']) \
@@ -129,7 +128,7 @@ def main():
     sg.theme('Dark Blue 3')
 
     layout = [ [sg.Text('配信URLを入力してください'), sg.InputText('', key='URL'), \
-        sg.Button('コメント取得', key='translate'), sg.Button('中止', key='stop')],
+        sg.Button('コメント取得', key='translate'), sg.RealtimeButton('中止', key='stop')],
         [sg.Output(size=(95, 20))]
     ]
 
@@ -141,13 +140,17 @@ def main():
         if event == sg.WIN_CLOSED:
             terminate(window)
 
+
         if event == 'translate':
+            window['translate'].Update(disabled=True)
+
+        # comments out only using test products
             path = './API/key.txt'.replace('/', os.sep)
             with open(path, 'r', encoding='UTF-8') as f:
                 try:
                     yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
-                    deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-                    slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
+        #             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+        #             slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
                 except:
                     print("key.txtの記述が不正です。ファイルを再確認してください。")
                     window.Refresh()
@@ -191,31 +194,29 @@ def main():
             # getting first time
             nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
 
-            print("test")
-            window.Refresh()
-
-            s_point = datetime.datetime.now()
+            s_point = time.time()
             # infinity loop
             while(chat_id):
+                event, values = window.read(timeout=100)
                 if event == sg.WIN_CLOSED:
                     terminate(window)
                 elif event == 'stop':
+                    print('コメント取得を終了します')
+                    print("")
+                    window['translate'].Update(disabled=False)
+                    window.Refresh()
                     break
 
                 # checking sleeping time
-                check_time = datetime.datetime.now() - s_point
-                if check_time > slp_time*1000:
+                check_time = time.time() - s_point
+                if check_time > slp_time:
                     try:
                         nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
                     except:
                         break
                     # reset time counter
-                    s_point = datetime.datetime.now()
-                if nextPageToken == -1:
-                    break
+                    s_point = time.time()
 
-            if nextPageToken == -1:
-                break
 
 if __name__ == '__main__':
     main()
