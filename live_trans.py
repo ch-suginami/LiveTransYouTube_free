@@ -129,10 +129,10 @@ def main():
 
     layout = [ [sg.Text('配信URLを入力してください'), sg.InputText('', key='URL'), \
         sg.Button('コメント取得', key='translate'), sg.RealtimeButton('中止', key='stop')],
-        [sg.Output(size=(95, 20))]
+        [sg.Multiline(autoscroll = True, reroute_stdout = True, expand_x = True, expand_y = True)]
     ]
 
-    window = sg.Window('YouTubeライブ翻訳ツール', layout)
+    window = sg.Window('YouTubeライブ翻訳ツール', layout, resizable = True, finalize = True)
 
     while True:
         event, values = window.read()
