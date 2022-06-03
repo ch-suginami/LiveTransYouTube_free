@@ -145,7 +145,7 @@ def main():
             window['translate'].Update(disabled=True)
 
         # comments out only using test products
-            path = './API/key.txt'.replace('/', os.sep)
+            path = 'key.txt'
             with open(path, 'r', encoding='UTF-8') as f:
                 try:
                     yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
@@ -160,6 +160,8 @@ def main():
             if not regex.match(r'^https://www.youtube.com/watch', yt_url):
                 print('正しいYouTubeアドレスを指定してください。（https://www.youtube.com/watchから始まっていますか？）')
                 window.Refresh()
+                window['translate'].Update(disabled=False)
+                continue
             else:
                 pass
 
