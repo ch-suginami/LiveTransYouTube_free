@@ -125,6 +125,21 @@ def terminate(window):
 
 def main():
 
+    # comments out only using test products
+    path = 'key.txt'
+    with open(path, 'r', encoding='UTF-8') as f:
+        try:
+            yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
+    #             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+    #             slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
+            f.readline()
+            f.readline()
+            width = int(f.readline().replace("横幅=", "").strip())
+            height = int(f.readline().replace("高さ=", "").strip())
+        except:
+            print("key.txtの記述が不正です。ファイルを再確認してください。")
+            window.Refresh()
+
     sg.theme('Dark Blue 3')
 
     layout = [ [sg.Text('配信URLを入力してください'), sg.InputText('', key='URL'), \
@@ -132,7 +147,8 @@ def main():
         [sg.Multiline(autoscroll = True, reroute_stdout = True, expand_x = True, expand_y = True)]
     ]
 
-    window = sg.Window('YouTubeライブ翻訳ツール', layout, resizable = True, finalize = True)
+    window = sg.Window('YouTubeライブ翻訳ツール', layout, size = (width, height),  resizable = True, finalize = True)
+
 
     while True:
         event, values = window.read()
@@ -143,17 +159,6 @@ def main():
 
         if event == 'translate':
             window['translate'].Update(disabled=True)
-
-        # comments out only using test products
-            path = 'key.txt'
-            with open(path, 'r', encoding='UTF-8') as f:
-                try:
-                    yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
-        #             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-        #             slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
-                except:
-                    print("key.txtの記述が不正です。ファイルを再確認してください。")
-                    window.Refresh()
 
             yt_url = values['URL']
             # checking right Live address
