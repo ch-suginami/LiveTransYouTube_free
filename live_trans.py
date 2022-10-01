@@ -22,7 +22,7 @@ import traceback
 
 # API Key Information
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
-deepl_api = "5ebc8721-eb64-797d-d9bd-6e3bf637ceac"
+deepl_api = "dummy"
 slp_time = 5
 
 
@@ -130,8 +130,8 @@ def main():
     with open(path, 'r', encoding='UTF-8') as f:
         try:
             yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
-    #             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-    #             slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
+            deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+            slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
             f.readline()
             f.readline()
             width = int(f.readline().replace("横幅=", "").strip())
@@ -143,7 +143,7 @@ def main():
     sg.theme('Dark Blue 3')
 
     layout = [ [sg.Text('配信URLを入力してください'), sg.InputText('', key='URL'), \
-        sg.Button('コメント取得', key='translate'), sg.RealtimeButton('中止', key='stop')],
+        sg.Button('チャット取得', key='translate'), sg.RealtimeButton('中止', key='stop')],
         [sg.Multiline(autoscroll = True, reroute_stdout = True, expand_x = True, expand_y = True)]
     ]
 
@@ -208,7 +208,7 @@ def main():
                 if event == sg.WIN_CLOSED:
                     terminate(window)
                 elif event == 'stop':
-                    print('コメント取得を終了します')
+                    print('チャットの取得を終了します')
                     print("")
                     window['translate'].Update(disabled=False)
                     window.Refresh()
