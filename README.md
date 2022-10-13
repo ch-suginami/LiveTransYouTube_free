@@ -19,7 +19,11 @@ DeepL APIの登録時に必要となります（**無料版でも必須**）。
 
 1行目の"dummy"を自分のYouTube Data API v3 のキーに置き換えてください。
 
+YouTube Data APIは、[このページ](https://console.developers.google.com/apis/credentials?hl=ja)から取得してください。
+
 2行目の"dummy"を自分のDeepL APIのキーに置き換えてください。
+
+DeepL APIキーは、[このページ](https://www.deepl.com/pro-api?cta=menu-pro-api)から取得してください。
 
 3行目はチャット取得時間間隔を秒単位で調整します。間隔が短いほど頻繁に取得しますが、それだけリクエストコストがかかります。
 
