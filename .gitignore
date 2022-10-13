@@ -1,4 +1,7 @@
 __pycache__
+dist_live_trans
+live_trans_cx
+setup.py
 build
 dist
 配布用

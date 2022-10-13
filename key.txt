@@ -1,0 +1,5 @@
+YouTubeAPIKey=dummy
+DeepLAPIKey=dummy
+チャット取得時間間隔=5
+横幅=700
+高さ=500

@@ -17,9 +17,6 @@ import sys
 import time
 import traceback
 
-# how to compile execution style
-# pyinstaller live_trans.py --onefile
-
 # API Key Information
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 deepl_api = "dummy"
@@ -111,7 +108,7 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, DL_URL)
                     f.flush()
 
         except:
-            traceback.print_exc()
+            print(traceback)
             f.write(traceback.print_exc())
             f.flush()
             pass
@@ -132,13 +129,13 @@ def main():
             yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
             deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
             slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
-            f.readline()
-            f.readline()
             width = int(f.readline().replace("横幅=", "").strip())
             height = int(f.readline().replace("高さ=", "").strip())
         except:
             print("key.txtの記述が不正です。ファイルを再確認してください。")
             window.Refresh()
+            input("何かキーを押してください")
+            sys.exit()
 
     sg.theme('Dark Blue 3')
 
@@ -175,7 +172,7 @@ def main():
             params = {'auth_key': deepl_api, 'text': "Live streamings will help us happy!", 'target_lang': 'JA'}
             check = requests.post('https://api.deepl.com/v2/translate', data=params).json()
 
-            if check == "<Response [403]>":
+            if check == "<Response [403]>" or "message" in check:
                 try:
                     check = requests.post('https://api-free.deepl.com/v2/translate', data=params).json()
                 except:
