@@ -1,10 +1,18 @@
-# YouTubeLive用 コメント取得＆リアルタイム翻訳ソフト
+# YouTubeLive用 チャット取得＆リアルタイム翻訳ソフト
 
 ## できること
 
 翻訳サービスDeepLを使ってYouTube Liveのチャット欄を日本語へ翻訳します。
 
 またチャットのログを取得する目的でも利用できます。
+
+---
+
+## ダウンロードページ
+
+[ここから](https://github.com/ch-suginami/LiveTransYouTube_free/releases/tag/v1.0.0)
+
+`zip`ファイルをダウンロードし、解凍後にテキストエディタで以下に記す情報を編集してください。
 
 ---
 
