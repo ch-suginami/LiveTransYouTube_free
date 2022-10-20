@@ -4,8 +4,7 @@ from distutils.util import check_environ
 from faulthandler import disable
 from operator import ne
 from subprocess import check_output
-from tkinter.messagebox import NO
-from turtle import width
+from tkinter import messagebox
 import PySimpleGUI as sg
 
 import datetime
@@ -18,18 +17,15 @@ import sys
 import time
 import traceback
 
-# API Key Information
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
-deepl_api = "dummy"
-slp_time = 5
 
-
-class params():
-    yt_api = ""
-    deepl_api = ""
-    slp_time = ""
-    width = 600
-    height = 600
+class Params():
+    def __init__(self) -> None:
+        self.yt_api = ""
+        self.deepl_api = ""
+        self.slp_time = ""
+        self.width = 600
+        self.height = 600
 
     def input_params(self):
         path = 'key.txt'
@@ -40,8 +36,9 @@ class params():
                 self.slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
                 self.width = int(f.readline().replace("横幅=", "").strip())
                 self.height = int(f.readline().replace("高さ=", "").strip())
-            except:
-                return traceback
+            except Exception as e:
+                messagebox.showerror("エラー", traceback.format_exc())
+                sys.exit()
         return self
 
 # translating with DeepL
@@ -146,8 +143,9 @@ def terminate(window):
 
 
 def main():
+    parameters = Params()
 
-    inputs = params.input_params()
+    inputs = parameters.input_params()
 
     sg.theme('Dark Blue 3')
 
@@ -157,6 +155,7 @@ def main():
     ]
 
     window = sg.Window('YouTubeライブ翻訳ツール', layout, size = (inputs.width, inputs.height),  resizable = True, finalize = True)
+
 
     while True:
         event, values = window.read()
@@ -180,7 +179,7 @@ def main():
 
             # checking which key of DeepL API use
             # Try to use paying key
-            params = {'auth_key': deepl_api, 'text': "Live streamings will help us happy!", 'target_lang': 'JA'}
+            params = {'auth_key': inputs.deepl_api, 'text': "Live streamings will help us happy!", 'target_lang': 'JA'}
             check = requests.post('https://api.deepl.com/v2/translate', data=params).json()
 
             if check == "<Response [403]>" or "message" in check:
