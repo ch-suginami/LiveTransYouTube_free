@@ -55,6 +55,9 @@ def dl_trans(DL_API_KEY, URL, msg):
 def get_chat_id(yt_url, yt_api):
     # getting video_id
     video_id = yt_url.replace('https://www.youtube.com/watch?v=', '')
+    pos = video_id.find('&')
+    if pos != -1:
+        video_id = video_id[:pos]
 
     # requetsing chat ID
     url = 'https://www.googleapis.com/youtube/v3/videos'
