@@ -126,12 +126,7 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, DL_URL)
                     f.flush()
 
         except:
-            print(traceback)
-            print("エラーが発生しました")
-            window.Refresh()
-            f.write(traceback.print_exc())
-            f.flush()
-            input("何かキーを押してください")
+            messagebox.showerror("エラー", traceback.format_exc())
             sys.exit()
 
     # to get next comments
@@ -186,19 +181,16 @@ def main():
                 try:
                     check = requests.post('https://api-free.deepl.com/v2/translate', data=params).json()
                 except:
-                    print("DeepL APIキーの値が正しくありません。")
-                    window.Refresh()
-                    input("何かキーを押してください")
+                    messagebox.showerror("エラー", "DeepLのAPIキーが正しくありません")
                     sys.exit()
                 DL_URL = 'https://api-free.deepl.com/v2/translate'
             else:
                 DL_URL = 'https://api.deepl.com/v2/translate'
 
-            chat_id = get_chat_id(inputs.yt_url, inputs.yt_api)
+            chat_id = get_chat_id(yt_url, inputs.yt_api)
 
-            if chat_id is None:
-                print('ライブはオフラインです')
-                window.Refresh()
+            if not chat_id or chat_id is None:
+                messagebox.showinfo("info", 'ライブはオフラインです')
                 break
 
             n_time = datetime.datetime.now()
