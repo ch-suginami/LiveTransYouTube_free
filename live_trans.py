@@ -5,6 +5,7 @@ from faulthandler import disable
 from operator import ne
 from subprocess import check_output
 from tkinter.messagebox import NO
+from turtle import width
 import PySimpleGUI as sg
 
 import datetime
@@ -22,6 +23,26 @@ JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 deepl_api = "dummy"
 slp_time = 5
 
+
+class params():
+    yt_api = ""
+    deepl_api = ""
+    slp_time = ""
+    width = 600
+    height = 600
+
+    def input_params(self):
+        path = 'key.txt'
+        with open(path, 'r', encoding='UTF-8') as f:
+            try:
+                self.yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
+                self.deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+                self.slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
+                self.width = int(f.readline().replace("横幅=", "").strip())
+                self.height = int(f.readline().replace("高さ=", "").strip())
+            except:
+                return traceback
+        return self
 
 # translating with DeepL
 
@@ -109,9 +130,12 @@ def get_chat(window, chat_id, pageToken, f_today, yt_api, deepl_API_key, DL_URL)
 
         except:
             print(traceback)
+            print("エラーが発生しました")
+            window.Refresh()
             f.write(traceback.print_exc())
             f.flush()
-            pass
+            input("何かキーを押してください")
+            sys.exit()
 
     # to get next comments
     return data['nextPageToken']
@@ -120,22 +144,10 @@ def terminate(window):
     window.close()
     sys.exit()
 
+
 def main():
 
-    # comments out only using test products
-    path = 'key.txt'
-    with open(path, 'r', encoding='UTF-8') as f:
-        try:
-            yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
-            deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
-            slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
-            width = int(f.readline().replace("横幅=", "").strip())
-            height = int(f.readline().replace("高さ=", "").strip())
-        except:
-            print("key.txtの記述が不正です。ファイルを再確認してください。")
-            window.Refresh()
-            input("何かキーを押してください")
-            sys.exit()
+    inputs = params.input_params()
 
     sg.theme('Dark Blue 3')
 
@@ -144,8 +156,7 @@ def main():
         [sg.Multiline(autoscroll = True, reroute_stdout = True, expand_x = True, expand_y = True)]
     ]
 
-    window = sg.Window('YouTubeライブ翻訳ツール', layout, size = (width, height),  resizable = True, finalize = True)
-
+    window = sg.Window('YouTubeライブ翻訳ツール', layout, size = (inputs.width, inputs.height),  resizable = True, finalize = True)
 
     while True:
         event, values = window.read()
@@ -178,12 +189,13 @@ def main():
                 except:
                     print("DeepL APIキーの値が正しくありません。")
                     window.Refresh()
+                    input("何かキーを押してください")
                     sys.exit()
                 DL_URL = 'https://api-free.deepl.com/v2/translate'
             else:
                 DL_URL = 'https://api.deepl.com/v2/translate'
 
-            chat_id = get_chat_id(yt_url, yt_api)
+            chat_id = get_chat_id(inputs.yt_url, inputs.yt_api)
 
             if chat_id is None:
                 print('ライブはオフラインです')
@@ -196,7 +208,7 @@ def main():
             nextPageToken = ''
 
             # getting first time
-            nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
+            nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, inputs.yt_api, inputs.deepl_api, DL_URL)
 
             s_point = time.time()
             # infinity loop
@@ -213,9 +225,9 @@ def main():
 
                 # checking sleeping time
                 check_time = time.time() - s_point
-                if check_time > slp_time:
+                if check_time > inputs.slp_time:
                     try:
-                        nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, yt_api, deepl_api, DL_URL)
+                        nextPageToken = get_chat(window, chat_id, nextPageToken, f_today, inputs.yt_api, inputs.deepl_api, DL_URL)
                     except:
                         break
                     # reset time counter
