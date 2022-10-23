@@ -32,7 +32,11 @@ class Params():
         with open(path, 'r', encoding='UTF-8') as f:
             try:
                 self.yt_api = f.readline().replace("YouTubeAPIKey=", "").strip()
+                if self.yt_api == "dummy":
+                    raise ValueError("設定が初期値のままです")
                 self.deepl_api = f.readline().replace("DeepLAPIKey=", "").strip()
+                if self.deepl_api == "dummy":
+                    raise ValueError("設定が初期値のままです")
                 self.slp_time = int(f.readline().replace("チャット取得時間間隔=", "").strip())
                 self.width = int(f.readline().replace("横幅=", "").strip())
                 self.height = int(f.readline().replace("高さ=", "").strip())
