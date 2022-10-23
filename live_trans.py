@@ -197,7 +197,7 @@ def main():
             chat_id = get_chat_id(yt_url, inputs.yt_api)
 
             if not chat_id or chat_id is None:
-                messagebox.showinfo("info", 'ライブはオフラインです')
+                messagebox.showinfo("info", 'ライブはオフライン、またはYouTube APIが正しくありません。')
                 break
 
             n_time = datetime.datetime.now()
