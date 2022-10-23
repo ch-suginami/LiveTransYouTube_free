@@ -6,4 +6,4 @@ build
 dist
 *.zip
 *.spec
-key.txt
+key_my.txt
